@@ -146,6 +146,50 @@ def get_instructions_bytes(
     extended_arg_size = instruction_size(opc.EXTENDED_ARG, opc)
     while i < n:
         op = code2num(bytecode, i)
+        # TODO:note 在这里修复指令
+        replaceList={}
+        replaceList[0xe5]=0x09 #nop
+        replaceList[0x1e]=0x47
+        replaceList[0x05]=0x53
+        replaceList[0xd9]=0xa1
+        replaceList[0x92]=0xa0
+
+        replaceList[0] = 0xc
+        replaceList[7] = 0x6
+        replaceList[13] = 0x3c
+        replaceList[14] = 0x48
+        replaceList[18] = 0x17
+        replaceList[31] = 0x55
+        replaceList[33] = 0x3f
+        replaceList[35] = 0x1
+        replaceList[36] = 0x1d
+        replaceList[38] = 0x10
+        replaceList[39] = 0x9  # 无
+        replaceList[40] = 0x3d
+        replaceList[42] = 0x1c
+        replaceList[43] = 0x16
+        replaceList[45] = 0x57
+        replaceList[46] = 0x02
+        replaceList[47] = 0x4e
+        replaceList[74] = 0x44
+        replaceList[80] = 0x18
+        replaceList[117] = 0x9  # 3.9版本有
+        replaceList[118] = 0x76
+        replaceList[119] = 0x30
+        replaceList[121] = 0x9  # 进一步解析
+        replaceList[129] = 0x9  # nop
+        replaceList[178] = 0xa4
+        replaceList[192] = 0x91
+        replaceList[195] = 0x9c
+        replaceList[203] = 0xa2
+        replaceList[214] = 0x9d
+        replaceList[220] = 0x9  # 无
+        replaceList[229] = 0x9  # nop
+        replaceList[233] = 0x64
+        replaceList[250] = 0x9  # 无
+
+        if op in replaceList.keys():
+            op = replaceList[op]
 
         offset = i
         if linestarts is not None:
@@ -232,38 +276,28 @@ def get_instructions_bytes(
             i += 1
 
         opname = opc.opname[op]
+        #TODO:note 在这里记录所有未识别的指令
+        # if myglobal.get_val("undeflist") is None:
+        #     myglobal.set_val("undeflist",[])
+
         inst_size = instruction_size(op, opc) + (extended_arg_count * extended_arg_size)
         # fallthrough = op not in opc.nofollow
 
-        # TODO:note 在这里修复指令
-        rmList=[0xe5]
-        replaceList={}
-        replaceList[0x1e]=0x47
-        replaceList[0x05]=0x53
-        replaceList[0xd9]=0xa1
-        replaceList[0x92]=0xa0
-        rmCode=False
-        if op in rmList:
-            rmCode=True
-        elif op in replaceList.keys():
-            op = replaceList[op]
-            opname = opc.opname[op]
 
-        if not rmCode:
-            yield Instruction(
-                opname,
-                op,
-                optype,
-                inst_size,
-                arg,
-                argval,
-                argrepr,
-                has_arg,
-                offset,
-                starts_line,
-                is_jump_target,
-                extended_arg_count != 0,
-            )
+        yield Instruction(
+            opname,
+            op,
+            optype,
+            inst_size,
+            arg,
+            argval,
+            argrepr,
+            has_arg,
+            offset,
+            starts_line,
+            is_jump_target,
+            extended_arg_count != 0,
+        )
         # fallthrough)
         extended_arg_count = extended_arg_count + 1 if op == opc.EXTENDED_ARG else 0
 
@@ -413,7 +447,7 @@ class Bytecode(object):
             if myglobal.get_val(self.codeobj.co_name) is None:
                 myglobal.set_val(self.codeobj.co_name,0)
             myglobal.set_val(self.codeobj.co_name, myglobal.get_val(self.codeobj.co_name)+1)
-            logging.getLogger("inst_log").info("%s inst [%d] [%s] [%s] [%s]"%(self.codeobj.co_name,myglobal.get_val(self.codeobj.co_name),
+            logging.getLogger("inst_log").info("inst %s: [%d] [%s] [%s] [%s]"%(self.codeobj.co_name,myglobal.get_val(self.codeobj.co_name),
                                                                                         binascii.hexlify( self.codeobj.co_code[instr.offset:instr.offset+instr.inst_size]),
                                                                                         instr.opname,instr.optype))
             file.write(

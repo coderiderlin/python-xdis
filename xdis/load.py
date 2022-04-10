@@ -56,7 +56,7 @@ def is_python_source(path):
 
 
 def is_bytecode_extension(path):
-    return path.endswith(".pyc") or path.endswith(".pyo")
+    return path.endswith(".pyc") or path.endswith(".pyo") or path.endswith(".bd")
 
 
 def check_object_path(path):
@@ -191,7 +191,10 @@ def load_module_from_file_object(
     timestamp = 0
     try:
         magic = fp.read(4)
+        if magic==b"\xd4\x07\x0d\x0a":
+            magic=b"\x55\x0d\x0d\x0a"
         magic_int = magic2int(magic)
+        # TODO:note bd版本头2004，替换头为3.8的头3413
 
         # For reasons I don't understand, PyPy 3.2 stores a magic
         # of '0'...  The two values below are for Python 2.x and 3.x respectively

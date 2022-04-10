@@ -488,7 +488,8 @@ class _VersionIndependentUnmarshaller:
 
         #TODO:note 取code字节，里面也是按marshalType s来读的，可以理解为一个连续串
         co_code = self.r_object(bytes_for_s=True)
-        logging.getLogger("inst_log").error(binascii.hexlify(co_code).decode('utf-8'))
+        # logging.getLogger("inst_log").error(binascii.hexlify(co_code).decode('utf-8'))
+
 
         # FIXME: Check/verify that is true:
         bytes_for_s = PYTHON_VERSION_TRIPLE >= (3, 0) and (version_tuple > (3, 0))
@@ -522,6 +523,8 @@ class _VersionIndependentUnmarshaller:
             # SET_LINENO is used instead.
             co_firstlineno = -1  # Bogus sentinal value
             co_lnotab = ""
+        logging.getLogger("inst_log").info("method code: %s %s" % (co_name, binascii.hexlify(co_code).decode('utf-8')))
+
 
         code = to_portable(
             co_argcount,

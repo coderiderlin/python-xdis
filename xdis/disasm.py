@@ -20,7 +20,7 @@ CPython version-independent disassembly routines
 # Note: we tend to eschew new Python 3 things, and even future
 # imports so this can run on older Pythons. This is
 # intended to be a more cross-version Python program
-
+import binascii
 import datetime, os, re, sys, types
 import logging
 from collections import deque
@@ -282,6 +282,14 @@ def disassemble_file(
 
     If that fails we'll compile internally for the Python version currently running
     """
+
+    myglobal.init()
+    lf = logging.FileHandler(filename + ".dislog", mode="w")
+    lf.setFormatter(logging.Formatter("%(message)s"))
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger("inst_log").addHandler(lf)
+    logging.getLogger("inst_log").error("dis start")
+
     pyc_filename = None
     try:
         # FIXME: add whether we want PyPy
@@ -313,6 +321,9 @@ def disassemble_file(
     else:
         filename = pyc_filename
 
+    logging.getLogger("inst_log").info("pyc file: %s" % (co.co_filename))
+
+
     if asm_format == "header":
         show_module_header(
             version_tuple,
@@ -340,6 +351,7 @@ def disassemble_file(
             alternate_opmap=alternate_opmap,
         )
     # print co.co_filename
+
     return (
         filename,
         co,
@@ -367,18 +379,13 @@ def _test():
 
 
 def _test_bd():
-    myglobal.init()
+    target_pyc="/Users/cod/Desktop/projects/re/bdpython/PI3/Bridge/Bridge__3_1_10/CEAEBEGELEAENE.bd"
+    # target_pyc="/Users/cod/Desktop/projects/re/bdpython/XDWELEUDBEBE.bytenn.550d.pyc"
+    # target_pyc="/usr/local/Cellar/python@3.9/3.9.9/Frameworks/Python.framework/Versions/3.9/lib/python3.9/encodings/__pycache__/cp437.cpython-39.pyc"
 
-    lf=logging.FileHandler("/Users/cod/Desktop/projects/re/bdpython/dislog_WDPEZBACWB.bd.cp437.6f0d.txt",mode="w")
-    # lf=logging.FileHandler("/Users/cod/Desktop/projects/re/bdpython/dislog_cp437.cpython-39.txt",mode="w")
 
-    lf.setFormatter(logging.Formatter("%(message)s"))
-    logging.basicConfig(level=logging.INFO)
-    logging.getLogger("inst_log").addHandler(lf)
-    logging.getLogger("inst_log").error("dis start")
-
-    disassemble_file("/Users/cod/Desktop/projects/re/bdpython/WDPEZBACWB.bd.cp437.6f0d.pyc")
-    # disassemble_file("/usr/local/Cellar/python@3.9/3.9.9/Frameworks/Python.framework/Versions/3.9/lib/python3.9/encodings/__pycache__/cp437.cpython-39.pyc")
+    disassemble_file(target_pyc)
+    # disassemble_file("")
     pass
 
 
