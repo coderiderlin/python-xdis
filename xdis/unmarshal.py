@@ -25,8 +25,9 @@ When the running interpreter and the read-in bytecode are the same,
 you can simply use Python's built-in marshal.loads() to produce a code
 object
 """
-
+import binascii
 import io
+import logging
 import sys
 from struct import unpack
 
@@ -218,6 +219,7 @@ class _VersionIndependentUnmarshaller:
         # print(marshalType) # debug
         if marshalType in UNMARSHAL_DISPATCH_TABLE:
             func_suffix = UNMARSHAL_DISPATCH_TABLE[marshalType]
+            #TODO:note 根据这个byte1进行相应的解析
             unmarshal_func = getattr(self, "t_" + func_suffix)
             return unmarshal_func(save_ref, bytes_for_s)
         else:
@@ -230,6 +232,7 @@ class _VersionIndependentUnmarshaller:
                 sys.stderr.write(
                     "Unknown type %i %c\n" % (ord(marshalType), marshalType)
                 )
+                raise Exception("T")
 
         return
 
@@ -483,10 +486,13 @@ class _VersionIndependentUnmarshaller:
         else:
             co_flags = 0
 
+        #TODO:note 取code字节，里面也是按marshalType s来读的，可以理解为一个连续串
         co_code = self.r_object(bytes_for_s=True)
+        logging.getLogger("inst_log").error(binascii.hexlify(co_code).decode('utf-8'))
 
         # FIXME: Check/verify that is true:
         bytes_for_s = PYTHON_VERSION_TRIPLE >= (3, 0) and (version_tuple > (3, 0))
+        #TODO:note 下面的解析顺序也是结构顺序，先常量，后命名
         co_consts = self.r_object(bytes_for_s=bytes_for_s)
         co_names = self.r_object(bytes_for_s=bytes_for_s)
 

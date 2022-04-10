@@ -22,9 +22,11 @@ CPython version-independent disassembly routines
 # intended to be a more cross-version Python program
 
 import datetime, os, re, sys, types
+import logging
 from collections import deque
 
 import xdis
+from xdis import myglobal
 
 from xdis.bytecode import Bytecode
 from xdis.codetype import iscode, codeType2Portable
@@ -114,6 +116,7 @@ def show_module_header(
         real_out.write("# Embedded file name: %s\n" % co.co_filename)
 
 
+#TODO:note 开始解析co了
 def disco(
     version_tuple,
     co,
@@ -363,5 +366,22 @@ def _test():
     disassemble_file(fn)
 
 
+def _test_bd():
+    myglobal.init()
+
+    lf=logging.FileHandler("/Users/cod/Desktop/projects/re/bdpython/dislog_WDPEZBACWB.bd.cp437.6f0d.txt",mode="w")
+    # lf=logging.FileHandler("/Users/cod/Desktop/projects/re/bdpython/dislog_cp437.cpython-39.txt",mode="w")
+
+    lf.setFormatter(logging.Formatter("%(message)s"))
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger("inst_log").addHandler(lf)
+    logging.getLogger("inst_log").error("dis start")
+
+    disassemble_file("/Users/cod/Desktop/projects/re/bdpython/WDPEZBACWB.bd.cp437.6f0d.pyc")
+    # disassemble_file("/usr/local/Cellar/python@3.9/3.9.9/Frameworks/Python.framework/Versions/3.9/lib/python3.9/encodings/__pycache__/cp437.cpython-39.pyc")
+    pass
+
+
 if __name__ == "__main__":
-    _test()
+    # _test()
+    _test_bd()

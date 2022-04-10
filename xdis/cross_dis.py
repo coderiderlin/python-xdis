@@ -17,6 +17,7 @@
 # Here we are more closely modeling Python's Lib/dis.py organization.
 # However it appears that Python names and code has copied a bit heavily from
 # earlier versions of xdis (and without attribution).
+import logging
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
@@ -222,6 +223,7 @@ def format_code_info(co, version_tuple, name=None, is_pypy=False):
 
     if not (name == "?" and version_tuple <= (2, 4)):
         lines.append("# Method Name:       %s" % name)
+        # logging.getLogger("inst_log").info("Method %s %s"%(co.co_name,co.co_filename))
 
     # Python before version 2.4 and earlier didn't store a name for the main routine.
     # Later versions use "<module>"

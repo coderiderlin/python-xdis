@@ -294,6 +294,7 @@ def load_module_from_file_object(
                 ):
                     source_size = unpack("<I", fp.read(4))[0]  # size mod 2**32
 
+            #TODO:note 下面开始读整个PYC的内容，根据头字节的marshal type，进入不同的解析方法，返回codeObjects列表
             if get_code:
                 if my_magic_int == magic_int:
                     bytecode = fp.read()

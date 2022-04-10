@@ -18,9 +18,11 @@
 Extracted from Python 3 dis module but generalized to
 allow running on Python 2.
 """
-
+import binascii
+import logging
 import sys, types
 
+from xdis import myglobal
 from xdis.cross_dis import (
     get_code_object,
     format_code_info,
@@ -232,20 +234,36 @@ def get_instructions_bytes(
         opname = opc.opname[op]
         inst_size = instruction_size(op, opc) + (extended_arg_count * extended_arg_size)
         # fallthrough = op not in opc.nofollow
-        yield Instruction(
-            opname,
-            op,
-            optype,
-            inst_size,
-            arg,
-            argval,
-            argrepr,
-            has_arg,
-            offset,
-            starts_line,
-            is_jump_target,
-            extended_arg_count != 0,
-        )
+
+        # TODO:note 在这里修复指令
+        rmList=[0xe5]
+        replaceList={}
+        replaceList[0x1e]=0x47
+        replaceList[0x05]=0x53
+        replaceList[0xd9]=0xa1
+        replaceList[0x92]=0xa0
+        rmCode=False
+        if op in rmList:
+            rmCode=True
+        elif op in replaceList.keys():
+            op = replaceList[op]
+            opname = opc.opname[op]
+
+        if not rmCode:
+            yield Instruction(
+                opname,
+                op,
+                optype,
+                inst_size,
+                arg,
+                argval,
+                argrepr,
+                has_arg,
+                offset,
+                starts_line,
+                is_jump_target,
+                extended_arg_count != 0,
+            )
         # fallthrough)
         extended_arg_count = extended_arg_count + 1 if op == opc.EXTENDED_ARG else 0
 
@@ -391,6 +409,13 @@ class Bytecode(object):
             if new_source_line:
                 file.write("\n")
             is_current_instr = instr.offset == lasti
+            #TODO:note 这里开始打印反汇编了
+            if myglobal.get_val(self.codeobj.co_name) is None:
+                myglobal.set_val(self.codeobj.co_name,0)
+            myglobal.set_val(self.codeobj.co_name, myglobal.get_val(self.codeobj.co_name)+1)
+            logging.getLogger("inst_log").info("%s inst [%d] [%s] [%s] [%s]"%(self.codeobj.co_name,myglobal.get_val(self.codeobj.co_name),
+                                                                                        binascii.hexlify( self.codeobj.co_code[instr.offset:instr.offset+instr.inst_size]),
+                                                                                        instr.opname,instr.optype))
             file.write(
                 instr.disassemble(
                     self.opc, lineno_width, is_current_instr, asm_format, instructions
